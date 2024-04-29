@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/gocarina/gocsv"
 	"github.com/goslogan/grsearch"
@@ -51,6 +52,8 @@ func main() {
 	}
 
 	// Do a regular search
+	fmt.Println("\n\nsearch for customers owned by lara croft")
+
 	cmd := client.FTSearchJSON(context.Background(), "demoindex", `@owner:{lara\.croft}`, &grsearch.QueryOptions{Dialect: 3})
 	if cmd.Err() != nil {
 		log.Fatalf("error searching: %+v", cmd.Err())
@@ -61,7 +64,7 @@ func main() {
 	}
 
 	// Aggregation.
-	log.Println("aggregate balance by owner: FT.AGGREGATE ")
+	fmt.Println("\n\naggregate balance by owner: FT.AGGREGATE")
 	builder := grsearch.NewAggregateBuilder().
 		Dialect(3).
 		Load("$balance", "balance").
@@ -73,8 +76,19 @@ func main() {
 	if err != nil {
 		log.Fatalf("error running aggregate: %+v", err)
 	} else {
-		// dump the raw result
-		log.Printf("result:\n\n%+v\n\n", ar)
+		titles := []string{}
+		for k := range ar[0] {
+			titles = append(titles, k)
+		}
+		fmt.Println(strings.Join(titles, ", "))
+		for _, m := range ar {
+			values := []string{}
+			for _, k := range titles {
+				values = append(values, m[k].(string))
+			}
+			fmt.Println(strings.Join(values, ", "))
+
+		}
 	}
 
 }
